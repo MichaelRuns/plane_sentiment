@@ -79,7 +79,7 @@ class LogisticRegression:
             count += 1
             if ngram in self.theta:
                 total += self.theta[ngram]
-                print(ngram + ": " + str(self.theta[ngram]))
+                # print(ngram + ": " + str(self.theta[ngram]))
             index += 1
         total /= count
         print(total)
@@ -106,7 +106,7 @@ async def home(request: Request):
 @app.post("/form")
 def predict(request: Request, test: str = Form(...)):
     prediction, sigma = lr.predict(test)
-    return templates.TemplateResponse('index.html', context={'request': request, 'prediction': prediction})
+    return templates.TemplateResponse('index.html', context={'request': request, 'prediction': prediction, 'sigma': sigma})
 
 
 @app.get("/form")
