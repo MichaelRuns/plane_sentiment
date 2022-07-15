@@ -66,6 +66,7 @@ class LogisticRegression:
                         self.theta[wrd] = self.theta[wrd] + (self.lr * (example[1] - self.sigmoid(example[0][wrd])) * (self.sigmoid(example[0][wrd]) * (1 - self.sigmoid(example[0][wrd]) * example[0][wrd])))
                     else:
                         self.theta[wrd] = 0
+        self.theta[""] = 0
         print('finished')
 
     def predict(self, rev):
@@ -81,14 +82,14 @@ class LogisticRegression:
                 print(ngram + ": " + str(self.theta[ngram]))
             index += 1
         total /= count
-        print(total/count)
+        print(total)
         print(self.sigmoid(total))
         if self.sigmoid(total) > 0.5:
             prediction = "positive"
         else:
             prediction = "negative"
 
-        return f"I predict that '{rev}' has {prediction} sentiment.", self.sigmoid(total)
+        return f"I predict that '{rev}' has {prediction} sentiment.", str(self.sigmoid(total))
 
 
 
