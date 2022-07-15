@@ -1,3 +1,4 @@
+import nltk
 from fastapi import FastAPI, Request, Form
 from pydantic import BaseModel
 from typing import Optional
@@ -12,11 +13,13 @@ class LogisticRegression:
     theta = {}
     lr = 0.01
     num_epochs = 3
+    n = 3
 
     def __init__(self):
         self.theta = {}
         self.lr = 0.03
         self.num_epochs = 10
+        self.n = 3
 
     def sigmoid(self, x):
         return 1 / (1 + math.exp(-x))
@@ -39,12 +42,14 @@ class LogisticRegression:
             for index in range(2,len(ex)):
                 tweet = tweet + ex[index]
             tweet = tweet[:-1]
-            tweet = tweet.split(sep=" ")
-            for wrd in tweet:
+            index = 0
+            while index + self.n < len(tweet):
+                wrd = tweet.replace(" ", "")[index:index + self.n]
                 if wrd in dic_form:
                     dic_form[wrd] = dic_form[wrd] + 1
                 else:
                     dic_form[wrd] = 0
+                index += 1
             ret.append((dic_form, label))
             line = fp.readline()
         fp.close()
@@ -63,17 +68,20 @@ class LogisticRegression:
                         self.theta[wrd] = 0
         print('finished')
 
-
-
     def predict(self, rev):
         prediction = "[please train classifier]"
-        tweet = rev.split(sep=" ")
         total = 0
-        for wrd in tweet:
-            if wrd in self.theta:
-                total += self.theta[wrd]
-                print(wrd + str(self.theta[wrd]))
-        total /= len(tweet)
+        index = 0
+        count = 0
+        while index + self.n < len(rev):
+            ngram = rev.replace(" ", "")[index:index + self.n]
+            count += 1
+            if ngram in self.theta:
+                total += self.theta[ngram]
+                print(ngram + ": " + str(self.theta[ngram]))
+            index += 1
+        total /= count
+        print(total/count)
         print(self.sigmoid(total))
         if self.sigmoid(total) > 0.5:
             prediction = "positive"
@@ -96,7 +104,7 @@ async def home(request: Request):
 
 @app.post("/form")
 def predict(request: Request, test: str = Form(...)):
-    prediction = lr.predict(test)[0]
+    prediction, sigma = lr.predict(test)
     return templates.TemplateResponse('index.html', context={'request': request, 'prediction': prediction})
 
 

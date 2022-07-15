@@ -3,16 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <title>V Sentiment</title>
+    <style>
+    body {background-color: powderblue;}
+    h1   {color: blue;}
+    p    {color: red;}
+</style>
 </head>
 <body>
     <h1>
         <p> Welcome to my simple Sentiment Analysis Model!
         </h1>
+    <p> This model was trained off of airplane reviews with a 3-gram word model.</br>
+        The logistic regression is built from scratch, and as such it is a little wonky</br>
+        The API is built off of the fastAPI package
+    </p>
     <form method="post">
         <input type="text" name="test" value="~Your Review Here~"/>
         <input type="submit">
     </form>
     <p>{{ prediction }}</p>
+    <p> probability: {{sigma}}</p>
 
 </body>
 </html>
