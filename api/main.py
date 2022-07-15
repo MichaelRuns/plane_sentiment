@@ -3,34 +3,90 @@ from pydantic import BaseModel
 from typing import Optional
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+import math
 
 app = FastAPI()
 
 
 class LogisticRegression:
     theta = {}
+    lr = 0.01
+    num_epochs = 3
 
     def __init__(self):
         self.theta = {}
+        self.lr = 0.03
+        self.num_epochs = 10
+
+    def sigmoid(self, x):
+        return 1 / (1 + math.exp(-x))
+
+    def extract_data(self, path):
+        fp = open(path)
+        line = fp.readline()
+        line = fp.readline()
+        ret = []
+        while line != "":
+            ex = line.split(sep=',')
+            if len(ex) < 3:
+                line = fp.readline()
+                continue
+            dic_form = {}
+            label = 0
+            if ex[1] == "positive":
+                label = 1
+            tweet = ex[2]
+            for index in range(2,len(ex)):
+                tweet = tweet + ex[index]
+            tweet = tweet[:-1]
+            tweet = tweet.split(sep=" ")
+            for wrd in tweet:
+                if wrd in dic_form:
+                    dic_form[wrd] = dic_form[wrd] + 1
+                else:
+                    dic_form[wrd] = 0
+            ret.append((dic_form, label))
+            line = fp.readline()
+        fp.close()
+        return ret
+
 
     def fit(self, path):
         print('training!')
-        pass
+        dataset = self.extract_data(path)
+        for epoch in range(self.num_epochs):
+            for example in dataset:
+                for wrd in example[0].keys():
+                    if wrd in self.theta:
+                        self.theta[wrd] = self.theta[wrd] + (self.lr * (example[1] - self.sigmoid(example[0][wrd])) * (self.sigmoid(example[0][wrd]) * (1 - self.sigmoid(example[0][wrd]) * example[0][wrd])))
+                    else:
+                        self.theta[wrd] = 0
+        print('finished')
+
+
 
     def predict(self, rev):
         prediction = "[please train classifier]"
-        rev = str(rev)
-        print(rev)
-        if rev[0] == 'y':
-            prediction = "the first letter is y!"
+        tweet = rev.split(sep=" ")
+        total = 0
+        for wrd in tweet:
+            if wrd in self.theta:
+                total += self.theta[wrd]
+                print(wrd + str(self.theta[wrd]))
+        total /= len(tweet)
+        print(self.sigmoid(total))
+        if self.sigmoid(total) > 0.5:
+            prediction = "positive"
         else:
-            prediction = 'the first letter is not y!'
-        return "The result is:  " + prediction
+            prediction = "negative"
+
+        return f"I predict that '{rev}' has {prediction} sentiment.", self.sigmoid(total)
+
 
 
 lr = LogisticRegression()
 templates = Jinja2Templates(directory="api/templates")
-lr.fit('asdf')
+lr.fit('airline_sentiment_analysis.csv')
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -40,7 +96,7 @@ async def home(request: Request):
 
 @app.post("/form")
 def predict(request: Request, test: str = Form(...)):
-    prediction = lr.predict(test)
+    prediction = lr.predict(test)[0]
     return templates.TemplateResponse('index.html', context={'request': request, 'prediction': prediction})
 
 
