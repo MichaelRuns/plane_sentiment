@@ -2,10 +2,8 @@ from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 import math
-from mangum import Mangum
 
 app = FastAPI()
-handler = Mangum(app)
 
 
 class LogisticRegression:
