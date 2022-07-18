@@ -56,6 +56,7 @@ class LogisticRegression:
     def fit(self, path):
         print('training!')
         dataset = self.extract_data(path)
+        dataset = dataset[:int(len(dataset)*0.8)]
         for epoch in range(self.num_epochs):
             for example in dataset:
                 for wrd in example[0].keys():
@@ -88,11 +89,29 @@ class LogisticRegression:
 
         return f"I predict that '{rev}' has {prediction} sentiment.", str(self.sigmoid(total))
 
+    def test(self, path):
+        dataset = self.extract_data(path)
+        dataset = dataset[int(len(dataset)*0.8):]
+        correct = 0
+        for dp in dataset:
+            total = 0
+            for ngram in dp[0].keys():
+                if ngram in self.theta:
+                    total += self.theta[ngram]
+            total /= len(dp[0])
+            prediction = 0
+            if self.sigmoid(total) <= 0.5:
+                prediction = 1
+            if prediction == dp[1]:
+                correct += 1
+        print(f"the accuracy is {correct/len(dataset)}")
+
 
 
 lr = LogisticRegression()
 templates = Jinja2Templates(directory="api/templates")
 lr.fit('airline_sentiment_analysis.csv')
+lr.test('airline_sentiment_analysis.csv')
 
 
 @app.get("/", response_class=HTMLResponse)
