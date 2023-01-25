@@ -22,7 +22,7 @@ class LogisticRegression:
         return 1 / (1 + math.exp(-x))
 
     def extract_data(self, path):
-        fp = open(path)
+        fp = open(path,encoding='utf-8')
         line = fp.readline()
         line = fp.readline()
         ret = []
@@ -116,8 +116,14 @@ lr.test('airline_sentiment_analysis.csv')
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    return "please go to ./form for the interactive code!"
+    prediction = "Type a review"
+    return templates.TemplateResponse('index.html', context={'request': request, 'prediction': prediction})
 
+
+@app.post("/")
+def predict(request: Request, test: str = Form(...)):
+    prediction, sigma = lr.predict(test)
+    return templates.TemplateResponse('index.html', context={'request': request, 'prediction': prediction, 'sigma': sigma})
 
 @app.post("/form")
 def predict(request: Request, test: str = Form(...)):
